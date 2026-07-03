@@ -1,0 +1,32 @@
+name: Check Unifi Publish Chart
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'unifi-controller/**'
+
+permissions:
+  contents: read
+
+jobs:
+  publish-chart:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set envvars
+        run: |
+          echo "CHART_VERSION=$(cat unifi-controller/Chart.yaml | grep version: | awk '{print $2}')" >> $GITHUB_ENV
+
+      - name: Chart | Push
+        uses: appany/helm-oci-chart-releaser@v0.5.0
+        with:
+          name: unifi-controller
+          repository: jsandas
+          tag: ${{ env.CHART_VERSION }}
+          path: unifi-controller
+          registry: ghcr.io
+          registry_username: ${{ github.actor }}
+          registry_password: ${{ secrets.GITHUB_TOKEN }}
